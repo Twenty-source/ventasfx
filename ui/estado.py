@@ -11,6 +11,7 @@ con estado mutable de la app, y aun así lo usamos de forma funcional:
       se pueden compartir entre páginas sin miedo a que alguien las altere.
 """
 
+import os
 from pathlib import Path
 from typing import NamedTuple
 
@@ -22,6 +23,14 @@ from core.modelos import CATALOGO, Venta
 from core.perezoso import folios, leer_ventas
 
 RAIZ = Path(__file__).resolve().parent.parent
+
+# ¿Corre en Streamlit Community Cloud? Allá el código vive en /mount/src y el usuario
+# del sistema es "appuser". También se puede forzar con la variable VENTASFX_NUBE=1.
+EN_LA_NUBE = (
+    os.environ.get("VENTASFX_NUBE") == "1"
+    or Path("/mount/src").exists()
+    or os.environ.get("HOME") == "/home/appuser"
+)
 RUTA_VENTAS = RAIZ / "data" / "ventas.csv"
 RUTA_MASIVO = RAIZ / "data" / "masivo.csv"
 
