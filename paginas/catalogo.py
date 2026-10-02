@@ -53,7 +53,7 @@ with tab_cat:
         )
         fig.update_layout(height=520, margin=dict(l=0, r=0, t=0, b=0))
         st.plotly_chart(fig)
-        st.caption("Haz clic en un sector para entrar a ese subárbol.")
+        st.caption("Al hacer clic en un sector se entra a ese subárbol.")
 
     with der:
         internos = tuple(f[2] for f in filas if A.buscar_nodo(arbol, f[2]).hijos)
@@ -133,7 +133,7 @@ with tab_bst:
 Cada nodo es `(valor, izquierda, derecha)` y el árbol vacío es `None`. **Todo es recursivo**:
 `suma_arbol` es exactamente la función de la presentación, generalizada con `valor_de`.
 
-Observa la diferencia de **altura**: insertar en el orden del catálogo produce un árbol más
+La diferencia de **altura** es clara: insertar en el orden del catálogo produce un árbol más
 alto que construirlo balanceado; con 34 productos, el balanceado tiene altura 6.
 `buscar_rango` **poda** ramas: no visita subárboles que no pueden contener resultados.
 """,

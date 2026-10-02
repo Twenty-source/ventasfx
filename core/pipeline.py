@@ -72,7 +72,7 @@ def ejecutar_pipeline(datos: Any, pasos: tuple) -> tuple:
 def cronometrar(funcion: Callable) -> Callable:
     """
     Envuelve una función para que devuelva (resultado, milisegundos).
-    Nota honesta: medir el tiempo es un efecto (depende del reloj), por eso
+    Observación: medir el tiempo es un efecto (depende del reloj), por eso
     este decorador vive en la "orilla" del sistema y no en las reglas de negocio.
     """
     # [PF 2.2 orden superior] Decorador: recibe una función y devuelve otra que la envuelve.
@@ -87,7 +87,7 @@ def cronometrar(funcion: Callable) -> Callable:
 
 def contar_llamadas(funcion: Callable) -> Callable:
     """
-    Decorador didáctico: cuenta cuántas veces se llama a una función.
+    Decorador de medición: cuenta cuántas veces se llama a una función.
     Se usa en el Laboratorio para comparar Fibonacci con y sin memoización.
     El contador vive en un atributo de la envoltura (estado explícito).
     """

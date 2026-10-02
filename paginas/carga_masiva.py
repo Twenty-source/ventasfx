@@ -69,7 +69,7 @@ if g2.button("Generar archivo", type="primary", icon=":material/bolt:"):
 st.code("escribir_ventas(ruta, con_progreso(islice(simular_ventas(), n), n, barra))", language="python")
 
 if not RUTA_MASIVO.exists():
-    st.info("Genera el archivo para habilitar las siguientes demostraciones.")
+    st.info("Al generar el archivo se habilitan las siguientes demostraciones.")
     st.stop()
 
 st.divider()
@@ -125,7 +125,7 @@ cuantas = b3.number_input("¿Cuántas quiero?", 1, 100, 10)
 
 predicado = y_(por_categoria(categoria), regla("total", ">", monto))
 inicio = time.perf_counter()
-# enumerate numera las filas conforme se leen; así sabemos cuántas se leyeron de verdad.
+# enumerate numera las filas conforme se leen; así se sabe cuántas se leyeron realmente.
 # [PF 2.7 perezoso] filter + islice (dentro de tomar) dejan de leer al tener `cuantas`.
 numeradas = enumerate(leer_ventas(str(RUTA_MASIVO)), start=1)
 pares = tomar(cuantas, filter(lambda par: predicado(par[1]), numeradas))

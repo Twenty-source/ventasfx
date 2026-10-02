@@ -16,7 +16,7 @@ Tipos de Python que aparecen en este módulo:
     list   -> se usa en la interfaz para selecciones del usuario
 
 Marcas en el código: los comentarios que empiezan con [PF ...] señalan dónde se
-aplica cada tema de la Unidad 2. Busca "[PF" en el editor para recorrerlos todos.
+aplica cada tema de la Unidad 2. Al buscar "[PF" en el editor aparecen todos.
 """
 
 from dataclasses import dataclass

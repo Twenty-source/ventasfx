@@ -33,7 +33,7 @@ with tabs[0]:
 
     if problema["entrada"] == "numeros":
         n = st.select_slider("Números del 1 al…", (10, 100, 1_000, 10_000, 100_000, 1_000_000), value=10,
-                             format_func=lambda x: f"{x:,}", help="Prueba con valores grandes para comparar tiempos")
+                             format_func=lambda x: f"{x:,}", help="Con valores grandes se aprecia mejor la diferencia de tiempos")
         entrada = range(1, n + 1)
         st.caption(f"Entrada: `range(1, {n + 1})`")
     else:
@@ -57,7 +57,7 @@ with tabs[0]:
         vista = r_fun if not isinstance(r_fun, (list, dict)) else (
             r_fun[:20] if isinstance(r_fun, list) else dict(list(r_fun.items())[:8]))
         st.write("Resultado (vista previa):", vista)
-    st.info("Pregunta al grupo: **¿qué cambió en la forma de pensar el problema?** "
+    st.info("Pregunta para el grupo: **¿qué cambió en la forma de pensar el problema?** "
             "El imperativo describe *cómo* (ciclos, acumuladores que cambian); "
             "el funcional describe *qué* (filtrar, transformar, combinar).")
 
