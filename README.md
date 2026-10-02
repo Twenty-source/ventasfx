@@ -32,14 +32,14 @@ recibe acciones del usuario. Todo el sistema sigue el mismo flujo:
 datos → filtrar (filter) → transformar (map) → agregar (reduce) → resultado
 ```
 
-Cada pantalla incluye un panel **🧠 Concepto aplicado** que explica el tema y muestra el código
+Cada pantalla incluye un panel ** Concepto aplicado** que explica el tema y muestra el código
 fuente real que se está ejecutando.
 
 ---
 
-## Guía de revisión (≈ 10 minutos)
+## Sugerencia Personal
 
-Recorrido sugerido en la aplicación en línea. Cada paso indica dónde hacer clic y qué tema de la
+Este es un recorrido que sugiero yo, profesor, en la aplicación en línea. Cada paso indica dónde hacer clic y qué tema de la
 unidad se comprueba.
 
 | # | Dónde | Qué hacer | Qué se comprueba |
