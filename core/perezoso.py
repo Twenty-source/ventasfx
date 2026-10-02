@@ -33,6 +33,8 @@ CAMPOS_CSV = Venta._fields
 # ---------------------------------------------------------------------------
 def numeros() -> Iterator[int]:
     """Secuencia INFINITA: no se guarda, se genera elemento por elemento."""
+    # [PF 2.7 generador] Diapositiva 27. `yield` pausa la función y entrega un valor;
+    # el siguiente next() la reanuda justo después. El while True nunca "termina".
     n = 1
     while True:
         yield n
@@ -41,6 +43,7 @@ def numeros() -> Iterator[int]:
 
 def cuadrados_lista(n: int) -> list:
     """Versión ANSIOSA: construye toda la lista en memoria."""
+    # Estilo imperativo a propósito (diapositiva 26), para comparar con la versión de abajo.
     resultado = []
     for i in range(n):
         resultado.append(i ** 2)
@@ -49,6 +52,7 @@ def cuadrados_lista(n: int) -> list:
 
 def cuadrados_generador(n: int) -> Iterator[int]:
     """Versión PEREZOSA: produce cada cuadrado cuando se pide."""
+    # [PF 2.7 generador] Mismo resultado que cuadrados_lista, sin guardar la lista.
     for i in range(n):
         yield i ** 2
 
@@ -58,6 +62,9 @@ def cuadrados_generador(n: int) -> Iterator[int]:
 # ---------------------------------------------------------------------------
 def folios(prefijo: str = "F", inicio: int = 1) -> Iterator[str]:
     """Folios de factura infinitos: F-0000001, F-0000002, ..."""
+    # [PF 2.7 perezoso] count() es infinito y map() es perezoso: cada folio se
+    # calcula solo cuando se pide con next().
+    # [PF 2.2 lambda] Da formato al número.
     return map(lambda n: f"{prefijo}-{n:07d}", count(inicio))
 
 
@@ -83,11 +90,14 @@ def simular_ventas(semilla: int = 42, fecha_inicio: date = date(2024, 10, 1),
     El generador conserva su propio estado (random, fecha, folio) entre
     cada `yield`; ese estado no es visible ni modificable desde afuera.
     """
+    # [PF efecto] Los números aleatorios usan una semilla fija: la misma semilla
+    # produce siempre las mismas ventas, así el resultado es reproducible.
     rng = random.Random(semilla)
     generador_folios = folios()
     pesos_vendedor = tuple(1.0 + 0.25 * i for i in range(len(VENDEDORES)))[::-1]
     pesos_base = tuple(1 / (p.precio ** 0.55) for p in catalogo)
 
+    # [PF 2.3 range] range(dias) = intervalo finito; [PF 2.7 perezoso] count() = infinito.
     for d in (count() if dias is None else range(dias)):
         fecha = fecha_inicio + timedelta(days=d)
         pesos = tuple(
@@ -97,6 +107,7 @@ def simular_ventas(semilla: int = 42, fecha_inicio: date = date(2024, 10, 1),
         fin_de_semana = 1.3 if fecha.weekday() >= 5 else 1.0
         crecimiento = 1 + d / 1500          # el negocio crece poco a poco
         n = int(rng.gauss(ventas_por_dia, ventas_por_dia * 0.15) * fin_de_semana * crecimiento)
+        # [PF 2.7 generador] Cada venta se produce con `yield` cuando alguien la pide.
         for producto in rng.choices(catalogo, weights=pesos, k=max(n, 1)):
             maximo = 12 if producto.precio < 1000 else (4 if producto.precio < 6000 else 2)
             yield Venta(
@@ -122,6 +133,7 @@ def venta_a_fila(venta: Venta) -> tuple:
 
 def fila_a_venta(fila: dict) -> Venta:
     """Función pura: convierte un dict de texto (CSV) en una Venta tipada."""
+    # [PF pura] Solo transforma: texto de entrada -> Venta de salida.
     return Venta(
         folio=fila["folio"],
         fecha=date.fromisoformat(fila["fecha"]),
@@ -138,12 +150,16 @@ def fila_a_venta(fila: dict) -> Venta:
 
 def leer_filas(ruta: str) -> Iterator[dict]:
     """Lee el archivo línea por línea; nunca lo carga completo."""
+    # [PF 2.7 generador] yield from: cada fila sale del archivo solo cuando se pide.
+    # [PF efecto] Leer un archivo es E/S; se aísla en esta función de la orilla.
     with open(ruta, newline="", encoding="utf-8") as archivo:
         yield from csv.DictReader(archivo)
 
 
 def leer_ventas(ruta: str) -> Iterator[Venta]:
     """map es perezoso: cada fila se convierte solo cuando se necesita."""
+    # [PF 2.5 map] + [PF 2.7 perezoso] Devuelve un iterador, no una lista.
+    # [PF 2.2 primera clase] fila_a_venta se pasa como valor a map.
     return map(fila_a_venta, leer_filas(ruta))
 
 
@@ -155,6 +171,8 @@ def escribir_ventas(ruta: str, ventas: Iterable[Venta]) -> int:
     with open(ruta, "w", newline="", encoding="utf-8") as archivo:
         escritor = csv.writer(archivo)
         escritor.writerow(CAMPOS_CSV)
+        # [PF efecto] Escribir es un efecto: vive aquí, no en las reglas de negocio.
+        # [PF 2.5 map] Venta -> fila -> escritura, una a la vez conforme llegan.
         return sum(1 for _ in map(escritor.writerow, map(venta_a_fila, ventas)))
 
 
@@ -163,12 +181,15 @@ def escribir_ventas(ruta: str, ventas: Iterable[Venta]) -> int:
 # ---------------------------------------------------------------------------
 def tomar(n: int, iterable: Iterable) -> tuple:
     """Toma solo los primeros n elementos (funciona con iterables infinitos)."""
+    # [PF 2.7 perezoso] islice deja de pedir elementos al llegar a n.
     return tuple(islice(iterable, n))
 
 
 def en_lotes(iterable: Iterable, tamano: int) -> Iterator[tuple]:
     """Agrupa un flujo en lotes de `tamano` elementos, de forma perezosa."""
     iterador = iter(iterable)
+    # [PF 2.7 perezoso] Cada lote se arma cuando se pide; takewhile(bool, ...) se
+    # detiene en el primer lote vacío (fin del flujo).
     return takewhile(bool, (tuple(islice(iterador, tamano)) for _ in count()))
 
 
@@ -178,6 +199,8 @@ def con_acumulado(ventas: Iterable[Venta]) -> Iterator[tuple]:
     tee duplica el flujo: una copia pasa tal cual y la otra se acumula.
     """
     copia_1, copia_2 = tee(ventas)
+    # [PF 2.5 reduce] accumulate entrega cada suma parcial (un reduce "paso a paso").
+    # [PF 2.5 map] Cada venta se transforma en su total antes de acumular.
     return zip(copia_1, accumulate(map(total_venta, copia_2)))
 
 
@@ -187,11 +210,15 @@ def hasta_alcanzar(ventas: Iterable[Venta], meta: float) -> Iterator[tuple]:
     takewhile deja de LEER en cuanto se rebasa la meta: aunque el flujo
     sea infinito, el cálculo termina.
     """
+    # [PF 2.7 perezoso] Funciona sobre un flujo infinito porque takewhile corta.
+    # [PF 2.4 predicado] La lambda decide si se sigue tomando (True) o se para (False).
     return takewhile(lambda par: par[1] <= meta, con_acumulado(ventas))
 
 
 def promedio_movil(valores: Iterable[float], ventana: int) -> Iterator[float]:
     """Promedio de los últimos `ventana` valores, calculado sobre la marcha."""
+    # [PF 2.7 generador] Produce un promedio por cada valor que llega.
+    # [PF efecto] El deque es estado local del generador; nadie de afuera lo ve.
     ultimos: deque = deque(maxlen=ventana)
     for valor in valores:
         ultimos.append(valor)
@@ -200,6 +227,8 @@ def promedio_movil(valores: Iterable[float], ventana: int) -> Iterator[float]:
 
 def medir_memoria(funcion: Callable, *args) -> tuple:
     """Ejecuta la función y devuelve (resultado, pico de memoria en bytes)."""
+    # [PF 2.2 orden superior] Recibe la función a medir como argumento.
+    # [PF efecto] Medir memoria es un efecto; solo se usa en la pantalla Carga masiva.
     tracemalloc.start()
     try:
         resultado = funcion(*args)

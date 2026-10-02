@@ -61,22 +61,29 @@ with tab_explorar:
         orden = c7.selectbox("Ordenar por", ("total", "fecha", "cantidad", "precio"))
 
     # ---- Construcción del predicado: funciones que producen funciones ----
+    # [PF 2.4 predicado] Cada filtro de la pantalla se convierte en una función True/False.
+    # [PF 2.2 orden superior] por_categoria, por_vendedor... DEVUELVEN predicados.
     basicos = [
         por_categoria(*cats) if cats else siempre,
         por_vendedor(*vends) if vends else siempre,
         entre_fechas(*rango) if len(rango) == 2 else siempre,
         monto_minimo(minimo) if minimo else siempre,
     ]
+    # [PF 2.4 operator] Cada regla "campo operador valor" usa operator.gt, operator.eq...
     funciones_regla = [regla(*r) for r in reglas]
     combinador = y_ if combinar.startswith("Y") else o_
     personalizadas = combinador(*funciones_regla) if funciones_regla else siempre
     if negar and funciones_regla:
         personalizadas = no_(personalizadas)
+    # [PF 2.2 orden superior] Todo se combina en UN solo predicado con y_/o_/no_.
     predicado = y_(*basicos, personalizadas)
 
+    # [PF 2.2 primera clase] La clave de orden es una función guardada en una variable.
     clave_orden = total_venta if orden == "total" else attrgetter(orden)
 
     # ---- Pipeline con pasos visibles ----
+    # [PF 2.5 filter] -> sorted -> [PF 2.5 map] -> [PF 2.5 reduce]
+    # [PF 2.2 lambda] Cada paso es una función anónima guardada en una tupla.
     pasos = (
         Paso("filter(predicado)", lambda vs: tuple(filter(predicado, vs))),
         Paso("sorted(key)", lambda vs: tuple(sorted(vs, key=clave_orden, reverse=True))),
@@ -115,6 +122,7 @@ with tab_explorar:
         paginas = total_paginas(len(filtradas), tam)
         p1, p2 = st.columns([1, 4])
         pagina = p1.number_input(f"Página (de {paginas:,})", 1, paginas, 1)
+        # [PF 2.3 range] Solo se convierten a tabla las filas del rango visible.
         indices = indices_pagina(len(filtradas), tam, pagina)
         p2.caption(f"Mostrando {indices}  →  filas {indices.start + 1}–{indices.stop} "
                    f"de {len(filtradas):,}")
@@ -169,7 +177,8 @@ with tab_registrar:
                 for e in errores:
                     st.error(e)
             else:
-                # Un estado NUEVO: inventario nuevo + tupla de ventas nueva.
+                # [PF inmutable] Un estado NUEVO: inventario nuevo + tupla de ventas nueva.
+                # El estado anterior queda intacto en el historial (por eso se puede deshacer).
                 registrar_estado(estado._replace(
                     inventario=actualizar_stock(estado.inventario, venta.sku, -venta.cantidad),
                     ventas_nuevas=estado.ventas_nuevas + (venta,),

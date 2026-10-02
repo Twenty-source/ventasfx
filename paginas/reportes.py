@@ -68,7 +68,7 @@ with tab_cat:
     c1, c2, c3 = st.columns(3)
     nivel = c1.radio("Nivel del árbol", (1, 2, 3), horizontal=True,
                      format_func=lambda n: ("Raíz", "Subcategoría", "Tipo")[n - 1])
-    # Diccionario de FUNCIONES: el usuario elige qué función se aplica en el map.
+    # [PF 2.2 primera clase] Diccionario de FUNCIONES: el usuario elige cuál se aplica.
     metricas = {"Total": total_venta, "Utilidad": utilidad, "Unidades": attrgetter("cantidad")}
     metrica = c2.selectbox("Métrica", tuple(metricas))
     anio = c3.selectbox("Año", sorted({v.fecha.year for v in ventas}, reverse=True))
@@ -120,7 +120,7 @@ with tab_top:
 # =========================================================================
 with tab_comp:
     anios = sorted({v.fecha.year for v in ventas})
-    # Comprensión anidada: un renglón por (año, mes)
+    # [PF 2.5 comprensión] Comprensión anidada: un renglón por (año, mes).
     filas = [
         (anio, int(mes[-2:]), total)
         for anio in anios

@@ -32,7 +32,8 @@ with st.container(border=True):
 
 inicio, fin = (periodo if len(periodo) == 2 else (periodo[0], periodo[0]))
 
-# El filtro es UN predicado construido combinando otros predicados.
+# [PF 2.2 orden superior] El filtro es UN predicado construido combinando otros predicados.
+# [PF 2.5 filter] filter() se queda con las ventas para las que el predicado da True.
 predicado = y_(entre_fechas(inicio, fin), por_categoria(*elegidas))
 seleccion = tuple(filter(predicado, ventas)) if elegidas else ()
 
@@ -41,6 +42,7 @@ if not seleccion:
     st.stop()
 
 # ---------------------------------------------------------------- KPIs
+# [PF 2.5 reduce] Los 5 indicadores salen de un solo reduce (core/reportes.py: resumen).
 datos = resumen(seleccion)
 k = st.columns(5)
 k[0].metric("Total vendido", dinero_corto(datos["total"]), help=dinero(datos["total"]))

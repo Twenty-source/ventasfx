@@ -27,6 +27,7 @@ def test_utilidad(venta):
     assert utilidad(venta) == pytest.approx(480.0)
 
 
+# [PF pura] Evidencia de pureza: 100 llamadas con la misma entrada dan un solo resultado.
 def test_pureza_misma_entrada_misma_salida(venta):
     assert {total_venta(venta) for _ in range(100)} == {total_venta(venta)}
 
@@ -42,6 +43,7 @@ def test_comision():
     assert comision(2_000_000) == 80_000
 
 
+# [PF inmutable] Las pruebas siguientes comprueban que el original nunca cambia.
 def test_con_descuento_no_modifica_original(venta):
     nueva = con_descuento(venta, 0.25)
     assert nueva.descuento == 0.25

@@ -25,6 +25,8 @@ def con_progreso(iterable, total: int, barra):
     Generador 'envoltura': deja pasar cada elemento tal cual y, de paso,
     actualiza la barra de progreso. Encadenar generadores = pipeline perezoso.
     """
+    # [PF 2.7 generador] Se intercala entre otros generadores sin cargar nada en memoria.
+    # [PF efecto] Mover la barra es un efecto de interfaz; por eso vive en la página.
     for i, elemento in enumerate(iterable, start=1):
         if i % 5000 == 0 or i == total:
             barra.progress(min(i / total, 1.0), text=f"{i:,} de {total:,}")
@@ -79,12 +81,14 @@ st.caption("Se mide el pico de memoria con `tracemalloc` (la medición hace todo
 
 def total_ansioso(ruta):
     """Carga TODAS las ventas en una lista y luego suma."""
+    # Evaluación ANSIOSA: list() materializa todo el archivo en memoria.
     todas = list(leer_ventas(ruta))
     return total_general(todas)
 
 
 def total_perezoso(ruta):
     """Suma conforme lee: nunca existe la colección completa."""
+    # [PF 2.7 perezoso] El iterador va directo al reduce: una venta a la vez.
     return total_general(leer_ventas(ruta))
 
 
@@ -122,6 +126,7 @@ cuantas = b3.number_input("¿Cuántas quiero?", 1, 100, 10)
 predicado = y_(por_categoria(categoria), regla("total", ">", monto))
 inicio = time.perf_counter()
 # enumerate numera las filas conforme se leen; así sabemos cuántas se leyeron de verdad.
+# [PF 2.7 perezoso] filter + islice (dentro de tomar) dejan de leer al tener `cuantas`.
 numeradas = enumerate(leer_ventas(str(RUTA_MASIVO)), start=1)
 pares = tomar(cuantas, filter(lambda par: predicado(par[1]), numeradas))
 primeras = tuple(venta for _, venta in pares)

@@ -167,7 +167,8 @@ with tab_inv:
     porcentaje = a2.slider("Ajuste", -30, 30, 5, format="%d%%") / 100
 
     afecta = lambda p: p.categoria.startswith(tuple(objetivo))
-    # map con una lambda condicional: un catálogo NUEVO; el actual no se toca
+    # [PF 2.5 map] [PF 2.2 lambda] map con una lambda condicional.
+    # [PF inmutable] Produce un catálogo NUEVO; el actual no se toca.
     propuesta = tuple(map(lambda p: ajustar_precio(p, porcentaje) if afecta(p) else p, catalogo))
     diferencias = [(a.nombre, a.precio, b.precio) for a, b in zip(catalogo, propuesta) if a.precio != b.precio]
 

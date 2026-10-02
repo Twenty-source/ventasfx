@@ -21,8 +21,11 @@ from typing import Any, Callable, Iterator, NamedTuple, Optional
 # ===========================================================================
 # 1) ÁRBOL BINARIO DE BÚSQUEDA CON TUPLAS
 # ===========================================================================
+# [PF 2.6 árbol] Cada nodo es (valor, izquierda, derecha); el árbol vacío es None.
+# Valores menores van a la izquierda y mayores a la derecha.
 
-# Ejemplo exacto de la presentación (diapositivas 23 y 24)
+# [PF 2.6 árbol] Ejemplo exacto de la presentación (diapositivas 23 y 24).
+# [PF inmutable] Todo el árbol son tuplas anidadas: ningún nodo se puede modificar.
 ARBOL_EJEMPLO = (
     10,
     (5, (2, None, None), (7, None, None)),
@@ -36,9 +39,12 @@ def identidad(x: Any) -> Any:
 
 def suma_arbol(arbol: Optional[tuple], valor_de: Callable = identidad) -> float:
     """Diapositiva 24: suma todos los valores del árbol."""
-    if arbol is None:                      # caso base
+    # [PF recursividad] Caso base: el árbol vacío suma 0.
+    if arbol is None:
         return 0
     valor, izquierda, derecha = arbol
+    # [PF recursividad] Caso recursivo: valor del nodo + suma de cada subárbol.
+    # [PF 2.2 orden superior] valor_de es una función: permite sumar precios de Producto.
     return valor_de(valor) + suma_arbol(izquierda, valor_de) + suma_arbol(derecha, valor_de)
 
 
@@ -51,6 +57,7 @@ def contar_nodos(arbol: Optional[tuple]) -> int:
 
 def altura(arbol: Optional[tuple]) -> int:
     """Número de niveles. Árbol vacío = 0, solo raíz = 1."""
+    # [PF recursividad] Altura = 1 + la altura del subárbol más alto.
     if arbol is None:
         return 0
     _, izquierda, derecha = arbol
@@ -72,8 +79,11 @@ def insertar(arbol: Optional[tuple], valor: Any, clave: Callable = identidad) ->
     Solo se recrean los nodos del camino; el resto se comparte
     (esto es seguro precisamente porque las tuplas son inmutables).
     """
+    # [PF recursividad] Caso base: lugar vacío -> se crea la hoja.
     if arbol is None:
         return (valor, None, None)
+    # [PF inmutable] Se arma una tupla NUEVA para el nodo actual; la rama que no
+    # se toca se reutiliza tal cual (se comparte con el árbol original).
     actual, izquierda, derecha = arbol
     if clave(valor) < clave(actual):
         return (actual, insertar(izquierda, valor, clave), derecha)
@@ -82,6 +92,8 @@ def insertar(arbol: Optional[tuple], valor: Any, clave: Callable = identidad) ->
 
 def construir_bst(valores, clave: Callable = identidad) -> Optional[tuple]:
     """Construye el árbol insertando uno a uno con reduce."""
+    # [PF 2.5 reduce] El acumulador es el árbol: cada paso devuelve un árbol nuevo.
+    # [PF 2.2 lambda] La lambda adapta insertar() a la firma (acumulado, elemento).
     return reduce(lambda arbol, v: insertar(arbol, v, clave), valores, None)
 
 
@@ -90,6 +102,7 @@ def construir_balanceado(valores_ordenados: tuple) -> Optional[tuple]:
     Construye un árbol balanceado tomando el elemento de en medio como raíz
     y repitiendo recursivamente con cada mitad.
     """
+    # [PF recursividad] Divide y vencerás: raíz = el de en medio, cada mitad = subárbol.
     if not valores_ordenados:
         return None
     medio = len(valores_ordenados) // 2
@@ -101,8 +114,11 @@ def construir_balanceado(valores_ordenados: tuple) -> Optional[tuple]:
 
 
 # --- Recorridos: son GENERADORES recursivos (árboles + evaluación perezosa) ---
+# [PF 2.7 generador] `yield from` entrega los valores del subárbol uno por uno,
+# sin construir una lista con todo el recorrido.
 def inorden(arbol: Optional[tuple]) -> Iterator:
     """izquierda -> raíz -> derecha. En un BST entrega los valores ORDENADOS."""
+    # [PF recursividad] + [PF 2.7 generador]
     if arbol is not None:
         valor, izquierda, derecha = arbol
         yield from inorden(izquierda)
@@ -139,6 +155,7 @@ def buscar_rango(arbol: Optional[tuple], minimo: float, maximo: float,
         return
     valor, izquierda, derecha = arbol
     k = clave(valor)
+    # [PF recursividad] Solo se baja a las ramas que pueden tener resultados (poda).
     if k > minimo:
         yield from buscar_rango(izquierda, minimo, maximo, clave)
     if minimo <= k <= maximo:
@@ -176,6 +193,7 @@ def a_dot(arbol: Optional[tuple], etiqueta: Callable = str) -> str:
 # ===========================================================================
 # 2) ÁRBOL N-ARIO DE CATEGORÍAS
 # ===========================================================================
+# [PF 2.6 árbol] Nodo n-ario inmutable: los hijos son una tupla de nodos.
 class NodoCategoria(NamedTuple):
     nombre: str
     ruta: str
@@ -191,8 +209,11 @@ def construir_arbol_categorias(rutas: tuple, nombre: str = "Catálogo",
     Caso base: ya no quedan segmentos -> nodo hoja.
     Caso recursivo: agrupar por el primer segmento y construir cada subárbol.
     """
+    # [PF 2.5 comprensión] set comprehension: primeros segmentos sin repetir.
     segmentos = tuple(r.split("/") for r in rutas if r)
     primeros = sorted({s[0] for s in segmentos})
+    # [PF recursividad] Cada hijo se construye llamando a esta misma función con el
+    # resto de la ruta. Caso base implícito: sin rutas -> `hijos` queda vacío.
     hijos = tuple(
         construir_arbol_categorias(
             tuple("/".join(s[1:]) for s in segmentos if s[0] == primero),
@@ -209,6 +230,8 @@ def con_totales(nodo: NodoCategoria, montos_hoja: dict) -> NodoCategoria:
     Devuelve un árbol NUEVO donde cada nodo tiene el total de su subárbol.
     Hojas: el monto viene del diccionario. Internos: suma de los hijos.
     """
+    # [PF recursividad] Caso base: hoja. Caso recursivo: primero los hijos, luego la suma.
+    # [PF inmutable] _replace devuelve nodos nuevos; el árbol original queda con total 0.
     if not nodo.hijos:
         return nodo._replace(total=montos_hoja.get(nodo.ruta, 0.0))
     hijos = tuple(con_totales(h, montos_hoja) for h in nodo.hijos)
@@ -220,6 +243,7 @@ def profundidad(nodo: NodoCategoria) -> int:
 
 
 def hojas(nodo: NodoCategoria) -> Iterator[NodoCategoria]:
+    # [PF recursividad] + [PF 2.7 generador] Entrega solo los nodos sin hijos.
     if not nodo.hijos:
         yield nodo
     for hijo in nodo.hijos:
@@ -228,6 +252,7 @@ def hojas(nodo: NodoCategoria) -> Iterator[NodoCategoria]:
 
 def aplanar(nodo: NodoCategoria, nivel: int = 0, padre: str = "") -> Iterator[tuple]:
     """Recorre el árbol y entrega (nivel, nombre, ruta, padre, total) por nodo."""
+    # [PF 2.7 generador] Alimenta la gráfica sunburst de la pantalla Catálogo.
     yield (nivel, nodo.nombre, nodo.ruta or nodo.nombre, padre, nodo.total)
     for hijo in nodo.hijos:
         yield from aplanar(hijo, nivel + 1, nodo.ruta or nodo.nombre)
@@ -237,6 +262,8 @@ def buscar_nodo(nodo: NodoCategoria, ruta: str) -> Optional[NodoCategoria]:
     """Busca recursivamente el nodo cuya ruta coincide."""
     if (nodo.ruta or nodo.nombre) == ruta:
         return nodo
+    # [PF 2.7 perezoso] next() sobre un generador se detiene en el primer resultado:
+    # no se siguen explorando los demás hijos.
     return next(
         (r for r in (buscar_nodo(h, ruta) for h in nodo.hijos) if r is not None),
         None,

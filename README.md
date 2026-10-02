@@ -59,6 +59,32 @@ unidad se comprueba.
 
 ---
 
+## Marcas en el código
+
+Los comentarios que empiezan con **`[PF`** señalan dónde se aplica cada tema. Para recorrerlos,
+buscar `[PF` en todo el proyecto (en GitHub: tecla `.` para abrir el editor web y luego
+`Ctrl + Shift + F`). Para un tema específico, buscar la marca completa, por ejemplo `[PF 2.5 reduce]`.
+
+| Marca | Significado |
+|---|---|
+| `[PF pura]` | Función pura: misma entrada, misma salida, sin efectos |
+| `[PF inmutable]` | Se produce un valor nuevo en lugar de modificar el existente |
+| `[PF 2.1 tipos]` | Tipos de datos y por qué se eligió cada uno |
+| `[PF 2.2 primera clase]` | Funciones guardadas en variables, diccionarios o pasadas como valor |
+| `[PF 2.2 orden superior]` | Funciones que reciben o devuelven funciones |
+| `[PF 2.2 lambda]` | Funciones anónimas |
+| `[PF 2.3 range]` | Intervalos con `range()` |
+| `[PF 2.4 operator]` | Operadores tratados como funciones (`operator.gt`, `itemgetter`…) |
+| `[PF 2.4 predicado]` | Funciones que devuelven True / False |
+| `[PF 2.5 map]` · `[PF 2.5 filter]` · `[PF 2.5 reduce]` | Transformar · seleccionar · acumular |
+| `[PF 2.5 comprensión]` | Comprensiones de listas, diccionarios y conjuntos |
+| `[PF recursividad]` | Caso base y caso recursivo |
+| `[PF 2.6 árbol]` | Árboles construidos con tuplas |
+| `[PF 2.7 generador]` · `[PF 2.7 perezoso]` | `yield`, iteradores y evaluación diferida |
+| `[PF efecto]` | Efectos secundarios aislados a propósito (archivos, reloj, estado de la interfaz) |
+
+---
+
 ## Correspondencia con los temas de la Unidad 2
 
 | Tema | Pantalla | Código |

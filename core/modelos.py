@@ -14,6 +14,9 @@ Tipos de Python que aparecen en este módulo:
     set    -> CATEGORIAS_RAIZ (valores únicos)
     dict   -> INDICE_PRODUCTOS (búsqueda rápida por clave)
     list   -> se usa en la interfaz para selecciones del usuario
+
+Marcas en el código: los comentarios que empiezan con [PF ...] señalan dónde se
+aplica cada tema de la Unidad 2. Busca "[PF" en el editor para recorrerlos todos.
 """
 
 from dataclasses import dataclass
@@ -24,6 +27,9 @@ from typing import NamedTuple
 # ---------------------------------------------------------------------------
 # Producto: dataclass congelada (frozen=True) -> no se puede modificar.
 # ---------------------------------------------------------------------------
+# [PF inmutable] frozen=True: `producto.precio = 10` lanza FrozenInstanceError.
+#                Para "cambiar" un producto se crea otro (ver funciones.ajustar_precio).
+# [PF 2.1 tipos] str, float, int y bool en un mismo registro.
 @dataclass(frozen=True)
 class Producto:
     sku: str
@@ -40,6 +46,7 @@ class Producto:
 # Para "cambiarla" se usa venta._replace(campo=nuevo_valor), que devuelve
 # una venta NUEVA y deja la original intacta.
 # ---------------------------------------------------------------------------
+# [PF inmutable] Una NamedTuple ES una tupla: sus campos no se pueden reasignar.
 class Venta(NamedTuple):
     folio: str
     fecha: date
@@ -53,13 +60,16 @@ class Venta(NamedTuple):
     vendedor: str
 
 
+# [PF 2.1 tipos] Constantes: valores que ninguna función modifica.
 TASA_IVA: float = 0.16
 
+# [PF 2.1 tipos] tuple en lugar de list: la colección completa es inmutable.
 VENDEDORES: tuple = (
     "Ana Torres", "Carlos Ruiz", "Diana López", "Emilio Vargas",
     "Fernanda Gil", "Gustavo Peña", "Hilda Navarro", "Iván Castillo",
 )
 
+# [PF 2.1 tipos] Tupla de tuplas: los datos de la regla viven separados del cálculo.
 # Comisión escalonada MENSUAL: (monto mínimo vendido en el mes sin IVA, porcentaje)
 TABLA_COMISIONES: tuple = (
     (0, 0.02),
@@ -110,8 +120,10 @@ CATALOGO: tuple = (
     Producto("PA-OFI-03", "Impresora láser", "Papelería/Oficina/Equipo", 3999.0, 2800.0, 33),
 )
 
-# dict comprehension: índice sku -> Producto (búsqueda O(1))
+# [PF 2.5 comprensión] dict comprehension: índice sku -> Producto (búsqueda O(1)).
+# [PF 2.1 tipos] dict: acceso por clave.
 INDICE_PRODUCTOS: dict = {p.sku: p for p in CATALOGO}
 
-# set comprehension: categorías raíz únicas
+# [PF 2.5 comprensión] set comprehension: categorías raíz sin repetir.
+# [PF 2.1 tipos] set: colección de valores únicos.
 CATEGORIAS_RAIZ: set = {p.categoria.split("/")[0] for p in CATALOGO}

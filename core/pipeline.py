@@ -18,6 +18,7 @@ from typing import Any, Callable, NamedTuple
 # ---------------------------------------------------------------------------
 def aplicar(funcion: Callable, valor: Any) -> Any:
     """El ejemplo clásico de la diapositiva 10: recibe una función y un valor."""
+    # [PF 2.2 orden superior] Recibe otra función como argumento.
     return funcion(valor)
 
 
@@ -30,6 +31,9 @@ def compose(*funciones: Callable) -> Callable:
     compose(f, g, h)(x) == f(g(h(x)))   (de derecha a izquierda, como en matemáticas)
     Se construye con reduce: combina muchas funciones en UNA sola.
     """
+    # [PF 2.2 orden superior] Recibe funciones y DEVUELVE una función nueva.
+    # [PF 2.5 reduce] Reduce una lista de funciones a una sola función.
+    # [PF 2.2 lambda] Cada paso crea una lambda que encadena f(g(x)).
     return reduce(lambda f, g: lambda x: f(g(x)), funciones, identidad)
 
 
@@ -37,6 +41,7 @@ def pipe(valor: Any, *funciones: Callable) -> Any:
     """
     pipe(x, h, g, f) == f(g(h(x)))   (de izquierda a derecha, como se lee un flujo)
     """
+    # [PF 2.5 reduce] El acumulado es el valor que va pasando de función en función.
     return reduce(lambda acumulado, f: f(acumulado), funciones, valor)
 
 
@@ -56,6 +61,8 @@ def ejecutar_pipeline(datos: Any, pasos: tuple) -> tuple:
         resultado[1] = paso1(datos)
         resultado[2] = paso2(paso1(datos)) ...
     """
+    # [PF 2.5 reduce] accumulate = reduce que conserva cada resultado intermedio.
+    # Con esto la página de Ventas dibuja: datos -> filter -> sorted -> map -> reduce.
     return tuple(accumulate(pasos, lambda acc, paso: paso.funcion(acc), initial=datos))
 
 
@@ -68,6 +75,8 @@ def cronometrar(funcion: Callable) -> Callable:
     Nota honesta: medir el tiempo es un efecto (depende del reloj), por eso
     este decorador vive en la "orilla" del sistema y no en las reglas de negocio.
     """
+    # [PF 2.2 orden superior] Decorador: recibe una función y devuelve otra que la envuelve.
+    # [PF efecto] Leer el reloj no es puro; por eso solo se usa para medir, no para calcular.
     @wraps(funcion)
     def envoltura(*args, **kwargs):
         inicio = time.perf_counter()
@@ -82,6 +91,8 @@ def contar_llamadas(funcion: Callable) -> Callable:
     Se usa en el Laboratorio para comparar Fibonacci con y sin memoización.
     El contador vive en un atributo de la envoltura (estado explícito).
     """
+    # [PF efecto] Contar llamadas exige estado: es una herramienta de medición del
+    # Laboratorio, no parte de la lógica de negocio.
     @wraps(funcion)
     def envoltura(*args):
         envoltura.llamadas += 1

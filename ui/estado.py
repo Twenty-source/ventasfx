@@ -35,6 +35,8 @@ RUTA_VENTAS = RAIZ / "data" / "ventas.csv"
 RUTA_MASIVO = RAIZ / "data" / "masivo.csv"
 
 
+# [PF inmutable] Una "foto" completa de la tienda. Nunca se modifica: cada acción
+# del usuario crea un EstadoTienda nuevo con _replace (ver paginas/ventas.py).
 class EstadoTienda(NamedTuple):
     catalogo: tuple        # tupla de Producto
     inventario: dict       # sku -> existencias
@@ -45,9 +47,12 @@ class EstadoTienda(NamedTuple):
 @st.cache_resource(show_spinner="Generando y cargando ventas históricas…")
 def ventas_historicas() -> tuple:
     """Carga el CSV una sola vez. Si no existe, lo genera (perezosamente)."""
+    # [PF efecto] Leer y generar archivos ocurre aquí, en la capa de interfaz.
     if not RUTA_VENTAS.exists():
         from data.generar_datos import generar
         generar(RUTA_VENTAS)
+    # [PF inmutable] Se guarda como TUPLA: todas las páginas comparten los mismos
+    # datos sin riesgo de que alguna los altere.
     return tuple(leer_ventas(str(RUTA_VENTAS)))
 
 
@@ -55,6 +60,7 @@ def a_dataframe(ventas) -> pd.DataFrame:
     """Puente a Ciencia de Datos: de tuplas a un DataFrame de pandas."""
     df = pd.DataFrame(list(ventas), columns=Venta._fields)
     if not df.empty:
+        # [PF 2.5 map] Columnas calculadas aplicando funciones puras a cada venta.
         df["total"] = list(map(total_venta, ventas))
         df["utilidad"] = list(map(utilidad, ventas))
     return df
@@ -64,11 +70,15 @@ def iniciar_sesion() -> None:
     if "historial" not in st.session_state:
         inicial = EstadoTienda(
             catalogo=CATALOGO,
+            # [PF 2.5 comprensión] dict comprehension: sku -> existencias.
             inventario={p.sku: p.stock for p in CATALOGO},
             ventas_nuevas=(),
             descripcion="Estado inicial",
         )
+        # [PF efecto] session_state es el ÚNICO estado mutable de la app (lo exige
+        # Streamlit). Se usa como una pila de estados inmutables, no para modificarlos.
         st.session_state.historial = [inicial]
+        # [PF 2.7 generador] Generador infinito de folios para las ventas nuevas.
         st.session_state.folios = folios(prefijo="N")
 
 
@@ -78,10 +88,13 @@ def estado_actual() -> EstadoTienda:
 
 
 def registrar_estado(nuevo: EstadoTienda) -> None:
+    # Se AGREGA una versión; las anteriores quedan intactas.
     st.session_state.historial.append(nuevo)
 
 
 def deshacer() -> bool:
+    # [PF inmutable] Deshacer es trivial: como ningún estado se modificó,
+    # basta con descartar el último y el anterior sigue completo.
     if len(st.session_state.historial) > 1:
         st.session_state.historial.pop()
         return True
@@ -90,4 +103,5 @@ def deshacer() -> bool:
 
 def todas_las_ventas() -> tuple:
     """Históricas + las registradas en la sesión (concatenación de tuplas)."""
+    # [PF inmutable] tupla + tupla produce una tupla nueva (diapositiva 7).
     return ventas_historicas() + estado_actual().ventas_nuevas
